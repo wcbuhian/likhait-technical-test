@@ -9,10 +9,16 @@ import { ExpenseForm } from "../components/ExpenseForm";
 import { Modal, Button } from "../vibes";
 import { COLORS } from "../constants/colors";
 
+type TypeOfModal = 'add_expense' | 'add_category' | null;
+
 const HistoryPage: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [TypeOfModal, setActiveModal] = useState<TypeOfModal>(null);
+
+  const closeModal = () => setActiveModal(null);
+
 
   // Get year and month from URL params, default to current date if not provided
   const getInitialYearMonth = () => {
@@ -148,8 +154,11 @@ const HistoryPage: React.FC = () => {
             onYearChange={handleYearChange}
           />
         </div>
-        <Button variant="primary" onClick={() => setIsModalOpen(true)}>
+        <Button variant="primary" onClick={() => setActiveModal("add_expense")}>
           Add Expense
+        </Button>
+        <Button variant="primary" onClick={() => setActiveModal("add_category")}>
+            Add Category
         </Button>
       </div>
 
@@ -180,13 +189,13 @@ const HistoryPage: React.FC = () => {
       </div>
 
       <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={TypeOfModal === 'add_expense'}
+        onClose={closeModal}
         title="Add New Expense"
       >
         <ExpenseForm
           onSubmit={handleAddExpense}
-          onCancel={() => setIsModalOpen(false)}
+          onCancel={closeModal}
         />
       </Modal>
     </div>
