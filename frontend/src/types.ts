@@ -19,6 +19,19 @@ export interface ExpenseFormData {
   date: string;
 }
 
+export interface Category {
+  id: number;
+  name: string;
+  emoji: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CategoryFormData {
+  name: string;
+  emoji: string;
+}
+
 export interface MonthlySummary {
   totalExpenses: number;
   categoryBreakdown: CategoryBreakdown[];
@@ -42,3 +55,5 @@ export interface DayExpenses {
   expenses: Expense[];
   total: number;
 }
+
+export type TypeOfModal = 'add_expense' | 'add_category' | null;
