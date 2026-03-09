@@ -83,16 +83,6 @@ const fetchCategoryList = async () => {
   }
 };
 
-  // const handleAddCategory = async(data: CategoryFormData) => {
-  //   try {
-  //     await createCategory(data);
-  //     setActiveModal(null);
-  //     fetchCategoryList();
-  //   } catch (e) {
-  //     console.error("Error in creating category:", e)
-  //     throw e;
-  //   }
-  // };
   const handleAddCategory = async(data: CategoryFormData) => {
     await createCategory(data); 
     setActiveModal(null);
@@ -218,6 +208,7 @@ const fetchCategoryList = async () => {
               categories={categories}
               total={total}
               totalCount={totalCount}
+              categoryList={categoryList}
             />
             <div style={{ marginTop: "32px" }}>
               <CalendarExpenseTable
