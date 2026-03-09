@@ -36,10 +36,8 @@ export async function getExpenses(
 /**
  * Fetch all categories
  */
-export async function fetchCategories(): Promise<
-  Array<{ id: number; name: string }>
-> {
-  const response = await fetch(`${API_BASE_URL}/categories`);
+export async function fetchCategories(): Promise<Category[]> {
+  const response = await fetch(`${API_BASE_URL}/categories/`);
   if (!response.ok) {
     throw new Error("Failed to fetch categories");
   }
@@ -55,7 +53,7 @@ export async function createExpense(data: ExpenseFormData): Promise<Expense> {
   const category = categories.find((c) => c.name === data.category);
 
   const expenseData = {
-    description: data.description,
+    description: data.description.trim(),
     amount: data.amount,
     category_id: category?.id,
     date: data.date,
@@ -111,14 +109,13 @@ export async function deleteExpense(id: number): Promise<void> {
   }
 }
 
-export async function createCategory(data: CategoryFormData): Promise<Category> {
+// Add a new category
 
+export async function createCategory(data: CategoryFormData): Promise<Category> {
     const categoryData = {
       name: data.name,
       emoji: data.emoji,
     }
-
-    console.log(categoryData);
   
     const response = await fetch(`${API_BASE_URL}/categories`, {
     method: "POST",
@@ -127,13 +124,11 @@ export async function createCategory(data: CategoryFormData): Promise<Category> 
     },
     body: JSON.stringify({ category: categoryData }),
     });
-
-    
-
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Rails Error Output:", errorText);
+      throw new Error(`Backend Error: ${response.status}`);
       throw new Error("Failed to add new category.")
     }
-    // console.log(response.json());
   return response.json();
-
 }

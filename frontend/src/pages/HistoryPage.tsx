@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { getExpenses, createExpense } from "../services/api";
-import { Expense, ExpenseFormData } from "../types";
+import { getExpenses, createExpense, fetchCategories, createCategory } from "../services/api";
+import { Category, CategoryFormData, Expense, ExpenseFormData, TypeOfModal } from "../types";
 import YearNavigation from "../components/YearNavigation";
 import { MonthNavigation } from "../components/MonthNavigation";
 import CategoryBreakdown from "../components/CategoryBreakdown";
@@ -8,11 +8,12 @@ import { CalendarExpenseTable } from "../components/CalendarExpenseTable";
 import { ExpenseForm } from "../components/ExpenseForm";
 import { Modal, Button } from "../vibes";
 import { COLORS } from "../constants/colors";
+import { CategoryForm } from "../components/CategoryForm";
 
-type TypeOfModal = 'add_expense' | 'add_category' | null;
 
 const HistoryPage: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [categoryList, setCategoryList] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [TypeOfModal, setActiveModal] = useState<TypeOfModal>(null);
 
@@ -51,6 +52,10 @@ const HistoryPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    fetchCategoryList();
+  }, []);
+
+  useEffect(() => {
     fetchExpenses();
   }, [selectedYear, selectedMonth]);
 
@@ -65,6 +70,35 @@ const HistoryPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+const fetchCategoryList = async () => {
+  try {
+    setLoading(true);
+    const data = await fetchCategories();
+    setCategoryList(data);
+  } catch (err) {
+    console.error("Error fetching categories: ", err)
+  } finally {
+    setLoading(false);
+  }
+};
+
+  // const handleAddCategory = async(data: CategoryFormData) => {
+  //   try {
+  //     await createCategory(data);
+  //     setActiveModal(null);
+  //     fetchCategoryList();
+  //   } catch (e) {
+  //     console.error("Error in creating category:", e)
+  //     throw e;
+  //   }
+  // };
+  const handleAddCategory = async(data: CategoryFormData) => {
+    await createCategory(data); 
+    setActiveModal(null);
+    await fetchCategoryList();
+  };
+
 
   const handleYearChange = (year: number) => {
     setSelectedYear(year);
@@ -163,7 +197,7 @@ const HistoryPage: React.FC = () => {
           <Button variant="primary" onClick={() => setActiveModal("add_expense")}>
             Add Expense
           </Button>
-          <Button variant="primary" onClick={() => setActiveModal("add_expense")}>
+          <Button variant="primary" onClick={() => setActiveModal("add_category")}>
               Add Category
           </Button>
         </div>
@@ -189,6 +223,7 @@ const HistoryPage: React.FC = () => {
               <CalendarExpenseTable
                 expenses={expenses}
                 onExpenseUpdated={fetchExpenses}
+                categoryList={categoryList}
               />
             </div>
           </>
@@ -203,15 +238,16 @@ const HistoryPage: React.FC = () => {
         <ExpenseForm
           onSubmit={handleAddExpense}
           onCancel={closeModal}
+          categoryList={categoryList}
         />
       </Modal>
       <Modal
-        isOpen={TypeOfModal === 'add_expense'}
+        isOpen={TypeOfModal === 'add_category'}
         onClose={closeModal}
         title="Add New Category"
       >
-        <ExpenseForm 
-          onSubmit={handleAddExpense}
+        <CategoryForm 
+          onSubmit={handleAddCategory}
           onCancel={closeModal}
         />
       </Modal>
