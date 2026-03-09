@@ -1,5 +1,6 @@
 class Category < ApplicationRecord
   has_many :expenses, dependent: :destroy
+# validation logic for Category
   validates :name, presence: true
 
   validate :emoji_is_single_char, if: -> { emoji.present? }
