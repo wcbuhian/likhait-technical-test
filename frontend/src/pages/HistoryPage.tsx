@@ -14,7 +14,6 @@ type TypeOfModal = 'add_expense' | 'add_category' | null;
 const HistoryPage: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [TypeOfModal, setActiveModal] = useState<TypeOfModal>(null);
 
   const closeModal = () => setActiveModal(null);
