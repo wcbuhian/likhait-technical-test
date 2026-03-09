@@ -80,7 +80,7 @@ const HistoryPage: React.FC = () => {
   const handleAddExpense = async (data: ExpenseFormData) => {
     try {
       await createExpense(data);
-      setIsModalOpen(false);
+      setActiveModal(null);
       fetchExpenses();
     } catch (error) {
       console.error("Error creating expense:", error);
@@ -126,6 +126,12 @@ const HistoryPage: React.FC = () => {
     alignItems: "center",
     gap: "24px",
   };
+  
+  const rightButtonsStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "right",
+    gap: "24px",
+  };
 
   const titleStyle: React.CSSProperties = {
     fontSize: "40px",
@@ -154,12 +160,14 @@ const HistoryPage: React.FC = () => {
             onYearChange={handleYearChange}
           />
         </div>
-        <Button variant="primary" onClick={() => setActiveModal("add_expense")}>
-          Add Expense
-        </Button>
-        <Button variant="primary" onClick={() => setActiveModal("add_category")}>
-            Add Category
-        </Button>
+        <div style={rightButtonsStyle}>
+          <Button variant="primary" onClick={() => setActiveModal("add_expense")}>
+            Add Expense
+          </Button>
+          <Button variant="primary" onClick={() => setActiveModal("add_expense")}>
+              Add Category
+          </Button>
+        </div>
       </div>
 
       <MonthNavigation
@@ -194,6 +202,16 @@ const HistoryPage: React.FC = () => {
         title="Add New Expense"
       >
         <ExpenseForm
+          onSubmit={handleAddExpense}
+          onCancel={closeModal}
+        />
+      </Modal>
+      <Modal
+        isOpen={TypeOfModal === 'add_expense'}
+        onClose={closeModal}
+        title="Add New Category"
+      >
+        <ExpenseForm 
           onSubmit={handleAddExpense}
           onCancel={closeModal}
         />
