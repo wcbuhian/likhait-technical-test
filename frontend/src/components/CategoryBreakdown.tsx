@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { CATEGORY_EMOJIS } from "../constants/categoryEmojis";
 import { COLORS } from "../constants/colors";
+import { Category } from "../types";
 
 interface CategoryData {
   category: string;
@@ -12,18 +13,36 @@ interface CategoryBreakdownProps {
   categories: CategoryData[];
   total: number;
   totalCount: number;
+  categoryList: Category[];
 }
 
 const CategoryBreakdown: React.FC<CategoryBreakdownProps> = ({
   categories,
   total,
   totalCount,
+  categoryList
 }) => {
   const [isCollapsed, setIsCollapsed] = React.useState(true);
 
   const formatAmount = (amount: number) => {
     return `$${amount.toFixed(2)}`;
   };
+
+  const allEmojis = useMemo(() => {
+    const userDefinedEmojis: Record<string,string> = {};
+    categoryList.forEach((category) => {
+      if (!(category.name in CATEGORY_EMOJIS)) {
+        userDefinedEmojis[category.name] = category.emoji;
+      }
+    });
+
+    return {...CATEGORY_EMOJIS, ...userDefinedEmojis};
+  }, [categoryList]);
+
+  const getCategoryEmoji = (input: string) => {
+    return allEmojis[input] || "📊";
+  };
+  
 
   const containerStyle: React.CSSProperties = {
     background: "white",
@@ -200,7 +219,7 @@ const CategoryBreakdown: React.FC<CategoryBreakdownProps> = ({
             >
               <div style={itemInfoStyle}>
                 <span style={itemIconStyle}>
-                  {CATEGORY_EMOJIS[category.category] || "📊"}
+                  {getCategoryEmoji(category.category)}
                 </span>
                 <div style={itemDetailsStyle}>
                   <div style={itemNameStyle}>{category.category}</div>
