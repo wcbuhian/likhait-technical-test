@@ -128,7 +128,6 @@ export async function createCategory(data: CategoryFormData): Promise<Category> 
       const errorText = await response.text();
       console.error("Rails Error Output:", errorText);
       throw new Error(`Backend Error: ${response.status}`);
-      throw new Error("Failed to add new category.")
     }
   return response.json();
 }
