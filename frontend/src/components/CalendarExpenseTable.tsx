@@ -2,7 +2,7 @@
  * Calendar expense table component
  */
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Expense, ExpenseFormData } from "../types";
 import { formatCurrency, formatDate } from "../utils/expenseUtils";
 import { getCategoryEmoji } from "../constants/categoryEmojis";
@@ -28,10 +28,20 @@ export function CalendarExpenseTable({
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  const expensesSortedByDate = useMemo(() => {
+    return [...expenses].sort((a,b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      if (dateA < dateB) return 1;
+      if (dateA > dateB) return -1;
+      return 0;
+    })
+  }, [expenses]);
+
   const totalPages = Math.ceil(expenses.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentExpenses = expenses.slice(startIndex, endIndex);
+  const currentExpenses = expensesSortedByDate.slice(startIndex, endIndex);
 
   const handleEdit = (expense: Expense) => {
     setEditingExpense(expense);

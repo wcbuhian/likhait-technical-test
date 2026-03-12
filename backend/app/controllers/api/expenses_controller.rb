@@ -9,7 +9,7 @@ class Api::ExpensesController < ApplicationController
       start_date = Date.new(year, month, 1)
       end_date = start_date.end_of_month
 
-      expenses = expenses.where(created_at: start_date.beginning_of_day..end_date.end_of_day)
+      expenses = expenses.where(date: start_date.beginning_of_day..end_date.end_of_day)
     end
 
     render json: expenses.map { |expense| format_expense(expense) }
@@ -51,7 +51,7 @@ class Api::ExpensesController < ApplicationController
     {
       id: expense.id,
       description: expense.description,
-      amount: expense.amount.to_f,
+      amount: expense.amount.to_s,
       category: expense.category.name,
       date: expense.date.to_s,
       created_at: expense.created_at,
