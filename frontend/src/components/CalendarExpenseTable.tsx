@@ -2,10 +2,10 @@
  * Calendar expense table component
  */
 
-import React, { useState } from "react";
-import { Expense, ExpenseFormData } from "../types";
+import React, { useMemo, useState } from "react";
+import { Category, Expense, ExpenseFormData } from "../types";
 import { formatCurrency, formatDate } from "../utils/expenseUtils";
-import { getCategoryEmoji } from "../constants/categoryEmojis";
+import { CATEGORY_EMOJIS } from "../constants/categoryEmojis";
 import { COLORS } from "../constants/colors";
 import { Button, Modal, Pagination } from "../vibes";
 import { ExpenseForm } from "./ExpenseForm.tsx";
@@ -14,6 +14,7 @@ import { deleteExpense, updateExpense } from "../services/api";
 interface CalendarExpenseTableProps {
   expenses: Expense[];
   onExpenseUpdated: () => void;
+  categoryList: Category[];
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -21,6 +22,7 @@ const ITEMS_PER_PAGE = 10;
 export function CalendarExpenseTable({
   expenses,
   onExpenseUpdated,
+  categoryList,
 }: CalendarExpenseTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
@@ -28,10 +30,36 @@ export function CalendarExpenseTable({
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  // Quick and dirty helper for Bug 1
+  const expensesSortedByDate = useMemo(() => {
+    return [...expenses].sort((a,b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      if (dateA < dateB) return 1;
+      if (dateA > dateB) return -1;
+      return 0;
+    })
+  }, [expenses]);
+
   const totalPages = Math.ceil(expenses.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentExpenses = expenses.slice(startIndex, endIndex);
+  const currentExpenses = expensesSortedByDate.slice(startIndex, endIndex);
+
+  const allEmojis = useMemo(() => {
+    const userDefinedEmojis: Record<string,string> = {};
+    categoryList.forEach((category) => {
+      if (!(category.name in CATEGORY_EMOJIS)) {
+        userDefinedEmojis[category.name] = category.emoji;
+      }
+    });
+
+    return {...CATEGORY_EMOJIS, ...userDefinedEmojis};
+  }, [categoryList]);
+
+  const getCategoryEmoji = (input: string) => {
+    return allEmojis[input] || "📦";
+  };
 
   const handleEdit = (expense: Expense) => {
     setEditingExpense(expense);
@@ -200,6 +228,7 @@ export function CalendarExpenseTable({
               setEditingExpense(null);
             }}
             submitLabel="Update Expense"
+            categoryList={categoryList}
           />
         )}
       </Modal>

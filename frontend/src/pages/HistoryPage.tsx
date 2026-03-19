@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { getExpenses, createExpense } from "../services/api";
-import { Expense, ExpenseFormData } from "../types";
+import { getExpenses, createExpense, fetchCategories, createCategory } from "../services/api";
+import { Category, CategoryFormData, Expense, ExpenseFormData, TypeOfModal } from "../types";
 import YearNavigation from "../components/YearNavigation";
 import { MonthNavigation } from "../components/MonthNavigation";
 import CategoryBreakdown from "../components/CategoryBreakdown";
@@ -8,11 +8,17 @@ import { CalendarExpenseTable } from "../components/CalendarExpenseTable";
 import { ExpenseForm } from "../components/ExpenseForm";
 import { Modal, Button } from "../vibes";
 import { COLORS } from "../constants/colors";
+import { CategoryForm } from "../components/CategoryForm";
+
 
 const HistoryPage: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [categoryList, setCategoryList] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [TypeOfModal, setActiveModal] = useState<TypeOfModal>(null);
+
+  const closeModal = () => setActiveModal(null);
+
 
   // Get year and month from URL params, default to current date if not provided
   const getInitialYearMonth = () => {
@@ -46,6 +52,10 @@ const HistoryPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    fetchCategoryList();
+  }, []);
+
+  useEffect(() => {
     fetchExpenses();
   }, [selectedYear, selectedMonth]);
 
@@ -61,6 +71,25 @@ const HistoryPage: React.FC = () => {
     }
   };
 
+const fetchCategoryList = async () => {
+  try {
+    setLoading(true);
+    const data = await fetchCategories();
+    setCategoryList(data);
+  } catch (err) {
+    console.error("Error fetching categories: ", err)
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const handleAddCategory = async(data: CategoryFormData) => {
+    await createCategory(data); 
+    setActiveModal(null);
+    await fetchCategoryList();
+  };
+
+
   const handleYearChange = (year: number) => {
     setSelectedYear(year);
     updateURL(year, selectedMonth);
@@ -74,7 +103,7 @@ const HistoryPage: React.FC = () => {
   const handleAddExpense = async (data: ExpenseFormData) => {
     try {
       await createExpense(data);
-      setIsModalOpen(false);
+      setActiveModal(null);
       fetchExpenses();
     } catch (error) {
       console.error("Error creating expense:", error);
@@ -120,6 +149,12 @@ const HistoryPage: React.FC = () => {
     alignItems: "center",
     gap: "24px",
   };
+  
+  const rightButtonsStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "right",
+    gap: "24px",
+  };
 
   const titleStyle: React.CSSProperties = {
     fontSize: "40px",
@@ -148,9 +183,14 @@ const HistoryPage: React.FC = () => {
             onYearChange={handleYearChange}
           />
         </div>
-        <Button variant="primary" onClick={() => setIsModalOpen(true)}>
-          Add Expense
-        </Button>
+        <div style={rightButtonsStyle}>
+          <Button variant="primary" onClick={() => setActiveModal("add_expense")}>
+            Add Expense
+          </Button>
+          <Button variant="primary" onClick={() => setActiveModal("add_category")}>
+              Add Category
+          </Button>
+        </div>
       </div>
 
       <MonthNavigation
@@ -168,11 +208,13 @@ const HistoryPage: React.FC = () => {
               categories={categories}
               total={total}
               totalCount={totalCount}
+              categoryList={categoryList}
             />
             <div style={{ marginTop: "32px" }}>
               <CalendarExpenseTable
                 expenses={expenses}
                 onExpenseUpdated={fetchExpenses}
+                categoryList={categoryList}
               />
             </div>
           </>
@@ -180,13 +222,24 @@ const HistoryPage: React.FC = () => {
       </div>
 
       <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={TypeOfModal === 'add_expense'}
+        onClose={closeModal}
         title="Add New Expense"
       >
         <ExpenseForm
           onSubmit={handleAddExpense}
-          onCancel={() => setIsModalOpen(false)}
+          onCancel={closeModal}
+          categoryList={categoryList}
+        />
+      </Modal>
+      <Modal
+        isOpen={TypeOfModal === 'add_category'}
+        onClose={closeModal}
+        title="Add New Category"
+      >
+        <CategoryForm 
+          onSubmit={handleAddCategory}
+          onCancel={closeModal}
         />
       </Modal>
     </div>

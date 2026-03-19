@@ -2,7 +2,7 @@
  * API service for communicating with the backend
  */
 
-import { Expense, ExpenseFormData } from "../types";
+import { Category, Expense, CategoryFormData, ExpenseFormData } from "../types";
 
 const API_BASE_URL = "http://localhost:3000/api";
 
@@ -36,10 +36,8 @@ export async function getExpenses(
 /**
  * Fetch all categories
  */
-export async function fetchCategories(): Promise<
-  Array<{ id: number; name: string }>
-> {
-  const response = await fetch(`${API_BASE_URL}/categories`);
+export async function fetchCategories(): Promise<Category[]> {
+  const response = await fetch(`${API_BASE_URL}/categories/`);
   if (!response.ok) {
     throw new Error("Failed to fetch categories");
   }
@@ -55,7 +53,7 @@ export async function createExpense(data: ExpenseFormData): Promise<Expense> {
   const category = categories.find((c) => c.name === data.category);
 
   const expenseData = {
-    description: data.description,
+    description: data.description.trim(),
     amount: data.amount,
     category_id: category?.id,
     date: data.date,
@@ -109,4 +107,27 @@ export async function deleteExpense(id: number): Promise<void> {
   if (!response.ok) {
     throw new Error("Failed to delete expense");
   }
+}
+
+// Add a new category
+
+export async function createCategory(data: CategoryFormData): Promise<Category> {
+    const categoryData = {
+      name: data.name,
+      emoji: data.emoji,
+    }
+  
+    const response = await fetch(`${API_BASE_URL}/categories`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ category: categoryData }),
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Rails Error Output:", errorText);
+      throw new Error(`Backend Error: ${response.status}`);
+    }
+  return response.json();
 }
